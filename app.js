@@ -50,7 +50,7 @@ app.get("/", async function (req, res) {
     .catch(function (error) {
       console.log(error);
     });
-  if (foundItems.length === 0) {
+  if (foundItems == null) {
     Item.insertMany([item1, item2, item3])
       .then(function () {
         console.log("Successfully saved defult items to DB");
