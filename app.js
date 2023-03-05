@@ -7,7 +7,6 @@ const mongoose = require("mongoose");
 const _ = require("lodash");
 const port = process.env.PORT || 3001;
 
-
 const app = express();
 
 app.set("view engine", "ejs");
@@ -43,16 +42,23 @@ const List = mongoose.model("List", listScheme);
 
 app.get("/", async function (req, res) {
   day = date.getDate();
-  const foundItems = await Item.find({}).exec();
-  if (foundItems.length === 0) {
-    Item.insertMany([item1, item2, item3])
-      .then(function () {
-        console.log("Successfully saved defult items to DB");
-      })
-      .catch(function (err) {
-        console.log(err);
-      });
-  }
+  const foundItems = await Item.find({})
+    .exec()
+    .then(function () {
+      if (foundItems.length === 0) {
+        Item.insertMany([item1, item2, item3])
+          .then(function () {
+            console.log("Successfully saved defult items to DB");
+          })
+          .catch(function (err) {
+            console.log(err);
+          });
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+
   res.render("list", { listTitle: day, newListItems: foundItems });
 
   res.redirect("/");
@@ -66,10 +72,16 @@ app.post("/", async function (req, res) {
     item.save();
     res.redirect("/");
   } else {
-    const foundList = await List.findOne({ name: listName }).exec();
-    foundList.items.push(item);
-    foundList.save();
-    res.redirect("/" + listName);
+    const foundList = await List.findOne({ name: listName })
+      .exec()
+      .then(function () {
+        foundList.items.push(item);
+        foundList.save();
+        res.redirect("/" + listName);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   }
 });
 
@@ -101,22 +113,26 @@ app.post("/delete", function (req, res) {
 
 app.get("/:customListName", async function (req, res) {
   const customListName = _.capitalize(req.params.customListName);
-  const foundList = await List.findOne({ name: customListName }).exec();
-  if (foundList == null) {
-    const list = new List({
-      name: customListName,
-      items: [item1, item2, item3],
+  const foundList = await List.findOne({ name: customListName })
+    .exec()
+    .then(function () {
+      if (foundList == null) {
+        const list = new List({
+          name: customListName,
+          items: [item1, item2, item3],
+        });
+        list.save();
+        res.redirect("/" + customListName);
+      } else {
+        res.render("list", {
+          listTitle: customListName,
+          newListItems: foundList.items,
+        });
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
     });
-    list.save();
-    res.redirect("/" + customListName);
-  } else {
-    res.render("list", {
-      listTitle: customListName,
-      newListItems: foundList.items,
-    });
-  }
 });
 
-app.listen(port, function () {
-  console.log("Server started on port 3001");
-});
+app.listen(port, function () {});
