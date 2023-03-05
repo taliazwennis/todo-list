@@ -45,20 +45,20 @@ app.get("/", async function (req, res) {
   const foundItems = await Item.find({})
     .exec()
     .then(function () {
-      if (foundItems.length === 0) {
-        Item.insertMany([item1, item2, item3])
-          .then(function () {
-            console.log("Successfully saved defult items to DB");
-          })
-          .catch(function (err) {
-            console.log(err);
-          });
-      }
+      console.log("Success");
     })
     .catch(function (error) {
       console.log(error);
     });
-
+  if (foundItems.length === 0) {
+    Item.insertMany([item1, item2, item3])
+      .then(function () {
+        console.log("Successfully saved defult items to DB");
+      })
+      .catch(function (err) {
+        console.log(err);
+      });
+  }
   res.render("list", { listTitle: day, newListItems: foundItems });
 
   res.redirect("/");
@@ -75,13 +75,14 @@ app.post("/", async function (req, res) {
     const foundList = await List.findOne({ name: listName })
       .exec()
       .then(function () {
-        foundList.items.push(item);
-        foundList.save();
-        res.redirect("/" + listName);
+        console.log("Success");
       })
       .catch(function (error) {
         console.log(error);
       });
+    foundList.items.push(item);
+    foundList.save();
+    res.redirect("/" + listName);
   }
 });
 
@@ -116,23 +117,24 @@ app.get("/:customListName", async function (req, res) {
   const foundList = await List.findOne({ name: customListName })
     .exec()
     .then(function () {
-      if (foundList == null) {
-        const list = new List({
-          name: customListName,
-          items: [item1, item2, item3],
-        });
-        list.save();
-        res.redirect("/" + customListName);
-      } else {
-        res.render("list", {
-          listTitle: customListName,
-          newListItems: foundList.items,
-        });
-      }
+      console.log("Success");
     })
     .catch(function (error) {
       console.log(error);
     });
+  if (foundList == null) {
+    const list = new List({
+      name: customListName,
+      items: [item1, item2, item3],
+    });
+    list.save();
+    res.redirect("/" + customListName);
+  } else {
+    res.render("list", {
+      listTitle: customListName,
+      newListItems: foundList.items,
+    });
+  }
 });
 
 app.listen(port, function () {});
